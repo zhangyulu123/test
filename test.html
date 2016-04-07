@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv = "X-UA-Compatible" content = "IE = edge" charset = "UTF-8"/> 
+		<title>TEST</title>
+		<!-- <link rel = "stylesheet" href = "../src/main/webapp/pages/css/wanma.css"/> -->
+		<link rel = "stylesheet" href = "../src/main/webapp/tools/easyui/themes/default/easyui.css"/>
+		<!-- <link rel = "stylesheet" href = "../src/main/webapp/tools/easyui/themes/icon.css"/> -->
+		
+		<script type = "text/javascript" src = "../src/main/webapp/tools/tssJS/tssJS.all.js"></script>
+		<script type = "text/javascript" src = "../src/main/webapp/tools/easyui/jquery.min.js"></script>
+		<script type = "text/javascript" src = "../src/main/webapp/tools/easyui/jquery.easyui.min.js"></script>
+		<script type = "text/javascript" src = "../src/main/webapp/tools/easyui/easyui-lang-zh_CN.js"></script>
+		<script type = "text/javascript" src = "../src/main/webapp/more/bi_template/echarts.js"></script>
+		<script type = "text/javascript" src = "../src/main/webapp/more/bi_template/common.js"></script>
+		<!-- <script type = "text/javascript" src = "../src/main/webapp/pages/js/common.js"></script> -->
+		<script type = "text/javascript">
+			$(function(){
+	        //服务器数据加载
+			var	URL1 = "http://10.45.10.216:8080/tss/data/json/1397"; //每日数据
+			var	URL2 = "http://10.45.10.216:8080/tss/data/json/1771"; //月每日数据
+			var	URL3 = "http://10.45.10.216:8080/tss/data/json/1772"; //年每月数据
+			var	URL4 = "http://10.45.10.216:8080/tss/data/json/1782"; //年分公司每月数据
+			var day_fresh, 	day_month, month_year, month_branch;
+			var method = "POST";
+			var params = {}; //点击报表时输入的查询参数（时间、分公司）
+			params = windows.parent.globalValiable.queryParams;
+			
+			//读取四张表格数据
+			tssJS.ajax({
+				url: URL1,
+				params: params,
+				method: method,
+				waiting: ture,
+				ondata: function(){
+					day_fresh =  this.getResponseJSON();
+					
+				}
+			})	
+			
+			tssJS.ajax({
+				url: URL2,
+				params: params,
+				method: method,
+				waiting: ture,
+				ondata: function(){
+					day_month =  this.getResponseJSON();
+					
+				}		
+			})
+			
+			tssJS.ajax({
+				url: URL3,
+				params: params,
+				method: method,
+				waiting: ture,
+				ondata: function(){
+					month_year_month =  this.getResponseJSON();
+					
+				}		
+			})
+			
+			tssJS.ajax({
+				url: URL4,
+				params: params,
+				method: method,
+				waiting: ture,
+				ondata: function(){
+					month_branch =  this.getResponseJSON();
+					
+				}		
+			})
+			
+			function table_rsr(day_fresh){
+				var data = [];
+				$("date").text
+				day_fresh.each(function(){
+					
+				})
+			}
+		</script>
+	</head>
+	<body>
+		<div id = "warpper" style= "height: 100%">
+			<div class = "easyui-layout" fit = "ture">
+				<div data-option = "region: east, split: ture">
+					<div class = "easyui-layout" fit = "ture">
+						<div data-option = "region: north, split: ture" title = "全年进度">
+							<table id = "qnjd"></table>
+						</div>
+						<div data-option = "region: center, split: ture" title = "月完成比">
+							<table id = "ywcb"></table>
+						</div>
+						<div data-option = "region: south, split: ture" title = "<span id = 'date'></span>日收入">
+							<table id = "rsr"></table>
+						</div>
+					</div>
+				</div>
+				<div data-option = "region: center, split: ture">
+					<div class = "easyui-layout" fit = "ture">
+						<div data-option = "region: north, split: ture" id = "overview"></div>
+						<div data-option = "region: center, split: ture, border: false" id = "quarter">
+							<div id = "quarter_radio">
+								<input id = "rsr" type = "radio" value = 1 checked = "checked"/>
+								<label for = "rsr">日收入</label>
+								<input id = "rlj" type = "radio" value = 2 />
+								<label for = "rlj">日累计</label>
+								<input id = "ysr" type = "radio" value = 3 />
+								<label for = "ysr">月收入</label>
+								<input id = "ylj" type = "radio" value = 4 />
+								<label for = "ylj">月累计</label>
+							</div>
+							<div id = "quarter_gragh"></div>
+						</div>
+						<div data-option = "region: south, split: ture" id = "branch_graph"></div>
+					</div>
+				</div>
+			</div>
+			
+		</div>
+	</body>
+</html>
