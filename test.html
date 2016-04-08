@@ -11,104 +11,175 @@
 		<script type = "text/javascript" src = "../src/main/webapp/tools/easyui/jquery.min.js"></script>
 		<script type = "text/javascript" src = "../src/main/webapp/tools/easyui/jquery.easyui.min.js"></script>
 		<script type = "text/javascript" src = "../src/main/webapp/tools/easyui/easyui-lang-zh_CN.js"></script>
-		<script type = "text/javascript" src = "../src/main/webapp/more/bi_template/echarts.js"></script>
+		<script type = "text/javascript" src = "../src/main/webapp/more/bi_template/echart.js"></script>
 		<script type = "text/javascript" src = "../src/main/webapp/more/bi_template/common.js"></script>
 		<!-- <script type = "text/javascript" src = "../src/main/webapp/pages/js/common.js"></script> -->
 		<script type = "text/javascript">
-			$(function(){
-	        //服务器数据加载
+		
 			var	URL1 = "http://10.45.10.216:8080/tss/data/json/1397"; //每日数据
 			var	URL2 = "http://10.45.10.216:8080/tss/data/json/1771"; //月每日数据
 			var	URL3 = "http://10.45.10.216:8080/tss/data/json/1772"; //年每月数据
 			var	URL4 = "http://10.45.10.216:8080/tss/data/json/1782"; //年分公司每月数据
 			var day_fresh, 	day_month, month_year, month_branch;
 			var method = "POST";
-			var params = {}; //点击报表时输入的查询参数（时间、分公司）
-			params = windows.parent.globalValiable.queryParams;
-			
-			//读取四张表格数据
+			var params = {"param1": "2016-04-07", "param2": "-1"}; //点击报表时输入的查询参数（时间、分公司）
+		
+			$(function(){
+			//服务器数据加载,读取四张表格数据
 			tssJS.ajax({
 				url: URL1,
 				params: params,
 				method: method,
-				waiting: ture,
+				waiting: true,
 				ondata: function(){
 					day_fresh =  this.getResponseJSON();
-					
+					table_rsr(day_fresh);
 				}
-			})	
+			});
 			
 			tssJS.ajax({
 				url: URL2,
 				params: params,
 				method: method,
-				waiting: ture,
+				waiting: true,
 				ondata: function(){
 					day_month =  this.getResponseJSON();
-					
+		
 				}		
-			})
+			});
 			
 			tssJS.ajax({
 				url: URL3,
 				params: params,
 				method: method,
-				waiting: ture,
+				waiting: true,
 				ondata: function(){
-					month_year_month =  this.getResponseJSON();
+					month_year =  this.getResponseJSON();
 					
 				}		
-			})
+			});
 			
 			tssJS.ajax({
 				url: URL4,
 				params: params,
 				method: method,
-				waiting: ture,
+				waiting: true,
 				ondata: function(){
 					month_branch =  this.getResponseJSON();
 					
 				}		
-			})
+			});
+		});
 			
 			function table_rsr(day_fresh){
 				var data = [];
-				$("date").text
-				day_fresh.each(function(){
-					
-				})
+				$("date").text(day_fresh[0].inmonth);
+				$.each(day_fresh, function(i, item){
+					data.push({"name": item.price_type, "account": item.money});
+				});
+				$("#rsr").propertygrid({
+					showHeader: false,
+					columns: [[
+					{filed: "price_type", width: "45%", resizable: false}, 
+					{filed: "money", width: "40%", resizable: false, align: right}
+					]]
+				});
+				$("#rsr").propertygrid("loadData", data); //属性表格方法
+			};
+			
+			function table_ywcb(month_year){
+				var data = [];
+				var wcb = 0;
+				$.each(month_year, function(i, item){
+					wcb = parseFloat(item.money)/parseFloat(item.mcome);
+					data.push({"month": item.mon, "wcb": wcb, "hb": item.mom, "tb": yoy});
+				});
+				$("#ywcb").propertygrid({
+					showHeader: true,
+					columns: [[
+						{field: "month", title: "月份", resizable: false, width: "25%"},
+						{field: "wcb", title: "完成比(%)", resizable: false, width: "25%"},
+						{field: "hb", title: "环比(%)", resizable: false, width: "25%"},
+						{field: "tb", title: "同比(%)", resizable: false, width: "25%"}
+					]]
+				});
+				$("#ywcb").propertygrid("loadData", data);
 			}
+			
+			function table_qnjd(month_year){
+				var ljsr = 0, dnmb = 0, wcjd = 0, sjjd = 0; 
+				var str = [];
+				dnmb = month_year[0].income + "万元"; //当年目标
+				sjjd = parseFloat(month_year[0].dnum)/parseFloat(month_year.ynum); //时间进度
+				//JOSN中都以字符串的形式保存
+				$.each(month_year, function(i, item){ 
+					ljsr = ljsr + parseFloat(item.money);
+				}); // 累计收入
+				wcjd = ljsr/parseFloat(month_year[0].income)；
+				ljsr = ljsr + "万元"；
+				str = [{"name": "累计收入", "account": ljsr}, 
+					   {"name": "当年目标", "account": dnmb},
+					   {"name": "完成进度", "account": wcjd},
+					   {"name": "时间进度", "account": sjjd}
+					   ]
+				$("#qnjd").propertygrid({
+					showHeader: false,
+					columns: [[
+						{field: "name", width: "40%", resizable: false},
+						{field: "account", width: "45%", resizable: false, align: right}
+					]]
+				});
+				$("#qnjd").propertygrid("loadData", str);
+			}
+			
+			
+			//第一张图标题
+			function graph_bar(day_month){ 
+				var m, d, t, l, p; // m = 月份， d = 时间进度, t = 目标值 l = 累计收入  p = 完成比
+				m = (day_month[0].inmonth.getMonth + 1) + "月";
+				d = day_month.length/day_month[0].mnum;
+				t = day_month[0].income;
+				$.each(day_month, function(i, item){
+					l = l + parseFloat(item.money);
+				});
+				p = l/t;
+				$("#y").text(m);
+				$("#yljsr").text(l);
+				$("#ymbz").text(t);
+				$("#ywcjd").text(p);
+				$("#ysjjd").text(d);
+			}
+			
 		</script>
 	</head>
 	<body>
-		<div id = "warpper" style= "height: 100%">
+		<div id = "warpper" style = "width: 100%; height: 100%">
 			<div class = "easyui-layout" fit = "ture">
-				<div data-option = "region: east, split: ture">
+				<div data-option = "region: east, split: ture" style = "width: 20%">
 					<div class = "easyui-layout" fit = "ture">
-						<div data-option = "region: north, split: ture" title = "全年进度">
+						<div data-option = "region: north, split: ture" title = "全年进度" style = "height: 30%">
 							<table id = "qnjd"></table>
 						</div>
-						<div data-option = "region: center, split: ture" title = "月完成比">
+						<div data-option = "region: center, split: ture" title = "月完成比" style = "height: 30%">
 							<table id = "ywcb"></table>
 						</div>
-						<div data-option = "region: south, split: ture" title = "<span id = 'date'></span>日收入">
+						<div data-option = "region: south, split: ture" title = "<span id = 'date'></span>日收入" style = "height: 40%">
 							<table id = "rsr"></table>
 						</div>
 					</div>
 				</div>
-				<div data-option = "region: center, split: ture">
+				<div data-option = "region: center, split: ture" style = "width: 80%">
 					<div class = "easyui-layout" fit = "ture">
-						<div data-option = "region: north, split: ture" id = "overview"></div>
-						<div data-option = "region: center, split: ture, border: false" id = "quarter">
+						<div data-option = "region: center, split: ture, border: false" id = "quarter" title = "<span id = 'y'></span>累计收入:<span id = 'yljsr'></span>元&nbsp&nbsp目标值:<span id = 'ymbz'></span>元&nbsp&nbsp完成进度:<span id = 'ywcjd'></span>% &nbsp&nbsp时间进度:<span id = 'ysjjd'></span>%">
 							<div id = "quarter_radio">
-								<input id = "rsr" type = "radio" value = 1 checked = "checked"/>
-								<label for = "rsr">日收入</label>
-								<input id = "rlj" type = "radio" value = 2 />
-								<label for = "rlj">日累计</label>
-								<input id = "ysr" type = "radio" value = 3 />
-								<label for = "ysr">月收入</label>
-								<input id = "ylj" type = "radio" value = 4 />
-								<label for = "ylj">月累计</label>
+								<input id = "rsr_radio" type = "radio" value = 1 checked = "checked"/>
+								<label for = "rsr_label">日收入</label>
+								<input id = "rlj_radio" type = "radio" value = 2 />
+								<label for = "rlj_label">日累计</label>
+								<input id = "ysr_radio" type = "radio" value = 3 />
+								<label for = "ysr_label">月收入</label>
+								<input id = "ylj_radio" type = "radio" value = 4 />
+								<label for = "ylj_label">月累计</label>
 							</div>
 							<div id = "quarter_gragh"></div>
 						</div>
